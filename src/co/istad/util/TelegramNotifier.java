@@ -1,28 +1,5 @@
 package co.istad.util;
 
-//import java.net.HttpURLConnection;
-//import java.net.URL;
-//
-//public class TelegramNotifier {
-//    private static final String BOT_TOKEN = "8377156239:AAHpbr4cmTNMYzsZPMMXT71iuFZ48XXBi1A";
-//    private static final String CHAT_ID = "1903757857";
-//
-//    public static void sendMessage(String text) {
-//        try {
-//            String urlStr =
-//                    "https://api.telegram.org/bot" + BOT_TOKEN +
-//                            "/sendMessage?chat_id=" + CHAT_ID +
-//                            "&text=" + text.replace(" ", "%20");
-//
-//            URL url = new URL(urlStr);
-//            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-//            conn.getInputStream();
-//        } catch (Exception e) {
-//            System.out.println("Telegram Error");
-//        }
-//    }
-//}
-
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;

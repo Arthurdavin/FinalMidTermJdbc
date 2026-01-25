@@ -1,3 +1,51 @@
+//package co.istad.model;
+
+//import java.time.LocalDate;
+//import java.time.LocalTime;
+//
+//public class Appointment {
+//    private Integer appointmentId;
+//    private Integer doctorId;
+//    private String patientName;
+//    private String patientGender;
+//    private String patientPhone;
+//    private LocalDate appointmentDate;
+//    private LocalTime appointmentTime;
+//    private boolean isDeleted;
+//
+//    // Getters & Setters
+//    public Integer getAppointmentId() { return appointmentId; }
+//    public void setAppointmentId(Integer appointmentId) { this.appointmentId = appointmentId; }
+//
+//    public Integer getDoctorId() { return doctorId; }
+//    public void setDoctorId(Integer doctorId) { this.doctorId = doctorId; }
+//
+//    public String getPatientName() { return patientName; }
+//    public void setPatientName(String patientName) { this.patientName = patientName; }
+//
+//    public String getPatientGender() { return patientGender; }
+//    public void setPatientGender(String patientGender) { this.patientGender = patientGender; }
+//
+//    public String getPatientPhone() { return patientPhone; }
+//    public void setPatientPhone(String patientPhone) { this.patientPhone = patientPhone; }
+//
+//    public LocalDate getAppointmentDate() { return appointmentDate; }
+//    public void setAppointmentDate(LocalDate appointmentDate) { this.appointmentDate = appointmentDate; }
+//
+//    public LocalTime getAppointmentTime() { return appointmentTime; }
+//    public void setAppointmentTime(LocalTime appointmentTime) { this.appointmentTime = appointmentTime; }
+//
+//    public boolean isDeleted() { return isDeleted; }
+//    public void setDeleted(boolean deleted) { isDeleted = deleted; }
+//
+//    @Override
+//    public String toString() {
+//        return String.format("%-5d %-8d %-20s %-10s %-15s %s %s",
+//                appointmentId, doctorId, patientName, patientGender, patientPhone,
+//                appointmentDate, appointmentTime);
+//    }
+//}
+
 package co.istad.model;
 
 import java.time.LocalDate;
@@ -13,7 +61,10 @@ public class Appointment {
     private LocalTime appointmentTime;
     private boolean isDeleted;
 
-    // Getters & Setters
+    // ────────────── NEW FIELD ──────────────
+    private int durationMinutes; // 30 or 60 minutes
+
+    // ────────────── Getters & Setters ──────────────
     public Integer getAppointmentId() { return appointmentId; }
     public void setAppointmentId(Integer appointmentId) { this.appointmentId = appointmentId; }
 
@@ -38,10 +89,15 @@ public class Appointment {
     public boolean isDeleted() { return isDeleted; }
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
 
+    // ────────────── NEW Getter & Setter ──────────────
+    public int getDurationMinutes() { return durationMinutes; }
+    public void setDurationMinutes(int durationMinutes) { this.durationMinutes = durationMinutes; }
+
     @Override
     public String toString() {
-        return String.format("%-5d %-8d %-20s %-10s %-15s %s %s",
+        return String.format("%-5d %-8d %-20s %-10s %-15s %s %s %-5d mins",
                 appointmentId, doctorId, patientName, patientGender, patientPhone,
-                appointmentDate, appointmentTime);
+                appointmentDate, appointmentTime, durationMinutes);
     }
+
 }

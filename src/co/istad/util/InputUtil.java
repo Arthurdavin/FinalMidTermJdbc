@@ -66,4 +66,40 @@ public class InputUtil {
             System.out.println("Please answer y or n.");
         }
     }
+
+    public static String readEmail(String prompt) {
+        while (true) {
+            String email = readLine(prompt);
+            if (email.isEmpty()) {
+                System.out.println("Email cannot be empty.");
+                continue;
+            }
+            // Simple regex for basic email validation
+            if (email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+                return email;
+            }
+            System.out.println("Invalid email format. Example: example@gmail.com");
+        }
+    }
+
+    public static String readName(String message) {
+        while (true) {
+            System.out.print(message);
+            String input = scanner.nextLine().trim();
+
+            if (input.isEmpty()) {
+                System.out.println("Name cannot be empty.");
+                continue;
+            }
+
+            if (!input.matches("[a-zA-Z ]+")) {
+                System.out.println("Name must contain letters only (no numbers or symbols).");
+                continue;
+            }
+
+            return input;
+        }
+    }
+
+
 }
