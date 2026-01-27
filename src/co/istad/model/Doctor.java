@@ -3,7 +3,7 @@ package co.istad.model;
 import java.time.LocalDateTime;
 
 public class Doctor {
-
+    private static int counter = 1;
     private Integer doctorId;
     private String fullName;
     private String specialization;
@@ -16,6 +16,9 @@ public class Doctor {
     private LocalDateTime updatedAt;
     private boolean deleted;
 
+    public Doctor() {
+        this.doctorId = counter++;
+    }
     // Getters & Setters
     public Integer getDoctorId() {
         return doctorId;

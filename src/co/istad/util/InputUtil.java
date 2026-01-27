@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import java.util.Scanner;
 
 public class InputUtil {
@@ -100,6 +101,124 @@ public class InputUtil {
             return input;
         }
     }
+
+    public static String readWorkingDays(String prompt) {
+        List<String> validDays = List.of(
+                "mon", "tue", "wed", "thu", "fri", "sat", "sun"
+        );
+
+        while (true) {
+            String input = readLine(prompt)
+                    .toLowerCase()
+                    .replaceAll("\\s+", ""); // remove spaces
+
+            if (input.isEmpty()) {
+                System.out.println("Working days cannot be empty.");
+                continue;
+            }
+
+            // ───────── RANGE FORMAT (mon-fri)
+            if (input.contains("-")) {
+                String[] parts = input.split("-");
+                if (parts.length != 2) {
+                    System.out.println("Invalid range format. Example: mon-fri");
+                    continue;
+                }
+
+                String start = parts[0];
+                String end = parts[1];
+
+                if (!validDays.contains(start) || !validDays.contains(end)) {
+                    System.out.println("Invalid day name. Use: mon,tue,wed,thu,fri,sat,sun");
+                    continue;
+                }
+
+                int startIndex = validDays.indexOf(start);
+                int endIndex = validDays.indexOf(end);
+
+                if (startIndex > endIndex) {
+                    System.out.println("Invalid range order. Example: mon-fri");
+                    continue;
+                }
+
+                return input; // ✅ valid range
+            }
+
+            // ───────── LIST FORMAT (mon,wed,fri)
+            if (input.contains(",")) {
+                String[] parts = input.split(",");
+
+                boolean valid = true;
+                for (String p : parts) {
+                    if (!validDays.contains(p)) {
+                        valid = false;
+                        break;
+                    }
+                }
+
+                if (!valid) {
+                    System.out.println("Invalid day name in list.");
+                    System.out.println("Example: mon,wed,fri");
+                    continue;
+                }
+
+                return input; // ✅ valid list
+            }
+
+            // ───────── SINGLE DAY (mon)
+            if (validDays.contains(input)) {
+                return input; // ✅ valid single day
+            }
+
+            // ───────── INVALID
+            System.out.println("Invalid working days format.");
+            System.out.println("Allowed formats:");
+            System.out.println("  mon");
+            System.out.println("  mon,wed,fri");
+            System.out.println("  mon-fri");
+        }
+    }
+    public static String readWorkingHours(String prompt) {
+        while (true) {
+            String input = readLine(prompt).trim();
+
+            if (input.isEmpty()) {
+                System.out.println("Working hours cannot be empty.");
+                continue;
+            }
+
+            // Format: HH:mm-HH:mm
+            if (!input.matches("^\\d{2}:\\d{2}-\\d{2}:\\d{2}$")) {
+                System.out.println("Invalid format. Example: 08:00-16:00");
+                continue;
+            }
+
+            try {
+                String[] parts = input.split("-");
+                LocalTime start = LocalTime.parse(parts[0]);
+                LocalTime end = LocalTime.parse(parts[1]);
+
+                if (!start.isBefore(end)) {
+                    System.out.println("Start time must be before end time.");
+                    continue;
+                }
+
+                return input; // ✅ valid
+            } catch (Exception e) {
+                System.out.println("Invalid time value.");
+            }
+        }
+    }
+
+//    public static String readNonEmpty(String prompt) {
+//        while (true) {
+//            String input = readLine(prompt);
+//            if (!input.trim().isEmpty()) {
+//                return input.trim();
+//            }
+//            System.out.println("This field cannot be empty.");
+//        }
+//    }
 
 
 }
