@@ -16,7 +16,7 @@ public class AppointmentService {
 
     private final AppointmentDao dao = new AppointmentDaoImpl();
 
-    private final DoctorService doctorService = new DoctorService();
+//    private final DoctorService doctorService = new DoctorService();
 
     public boolean existsByDoctorAndTime(
             int doctorId,
@@ -44,8 +44,6 @@ public class AppointmentService {
         return dao.findById(id);
     }
 
-
-
     public void create(Appointment appointment) {
         dao.insert(appointment);
         String msg = """
@@ -65,7 +63,6 @@ public class AppointmentService {
         );
         TelegramNotifier.send(msg);
     }
-
 
     public void update(Appointment input) {
         Appointment existing = dao.findById(input.getAppointmentId())
@@ -120,20 +117,20 @@ public class AppointmentService {
     // ───────────────────────────────
     // Available time slots generation
     // ───────────────────────────────
-    public List<LocalTime> getAvailableTimeSlots(Doctor doctor, LocalDate date, int durationMinutes) {
-        List<LocalTime> slots = new ArrayList<>();
-
-        String[] parts = doctor.getWorkingHours().split("-");
-        LocalTime start = LocalTime.parse(parts[0]);
-        LocalTime end = LocalTime.parse(parts[1]);
-
-        for (LocalTime time = start; time.plusMinutes(durationMinutes).compareTo(end) <= 0; time = time.plusMinutes(30)) {
-            if (!existsByDoctorAndTime(doctor.getDoctorId(), date, time, durationMinutes)) {
-                slots.add(time);
-            }
-        }
-
-        return slots;
-    }
+//    public List<LocalTime> getAvailableTimeSlots(Doctor doctor, LocalDate date, int durationMinutes) {
+//        List<LocalTime> slots = new ArrayList<>();
+//
+//        String[] parts = doctor.getWorkingHours().split("-");
+//        LocalTime start = LocalTime.parse(parts[0]);
+//        LocalTime end = LocalTime.parse(parts[1]);
+//
+//        for (LocalTime time = start; time.plusMinutes(durationMinutes).compareTo(end) <= 0; time = time.plusMinutes(30)) {
+//            if (!existsByDoctorAndTime(doctor.getDoctorId(), date, time, durationMinutes)) {
+//                slots.add(time);
+//            }
+//        }
+//
+//        return slots;
+//    }
 
 }

@@ -87,15 +87,28 @@ public class AppointmentDaoImpl implements AppointmentDao {
         }
     }
 
+//    @Override
+//    public void softDelete(Integer appointmentId) {
+//        final String sql = "UPDATE appointments SET is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE appointment_id = ?";
+//        try (Connection conn = DbConfig.getInstance();
+//             PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, appointmentId);
+//            ps.executeUpdate();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
+
     @Override
     public void softDelete(Integer appointmentId) {
         String sql = "UPDATE appointments SET is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE appointment_id = ?";
-        try (Connection conn = DbConfig.getInstance();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, appointmentId);
             ps.executeUpdate();
+            ps.close(); // close the statement
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // show error if anything goes wrong
         }
     }
 
@@ -160,40 +173,40 @@ public class AppointmentDaoImpl implements AppointmentDao {
         return list;
     }
 
-    @Override
-    public boolean existsByDoctorAndTime(int doctorId, LocalDate date, LocalTime time) {
-        String sql = """
-        SELECT COUNT(*) FROM appointments
-        WHERE doctor_id = ? AND appointment_date = ? AND appointment_time = ? AND is_deleted = false
-    """;
-
-        try (PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, doctorId);
-            ps.setDate(2, java.sql.Date.valueOf(date));
-            ps.setTime(3, java.sql.Time.valueOf(time));
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return rs.getInt(1) > 0; // if count > 0, appointment exists
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return false;
-    }
+//    @Override
+//    public boolean existsByDoctorAndTime(int doctorId, LocalDate date, LocalTime time) {
+//        String sql = """
+//        SELECT COUNT(*) FROM appointments
+//        WHERE doctor_id = ? AND appointment_date = ? AND appointment_time = ? AND is_deleted = false
+//    """;
+//
+//        try (PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, doctorId);
+//            ps.setDate(2, java.sql.Date.valueOf(date));
+//            ps.setTime(3, java.sql.Time.valueOf(time));
+//
+//            try (ResultSet rs = ps.executeQuery()) {
+//                if (rs.next()) {
+//                    return rs.getInt(1) > 0; // if count > 0, appointment exists
+//                }
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//
+//        return false;
+//    }
 
     @Override
     public List<Appointment> findByDoctorAndDate(int doctorId, LocalDate date) {
         List<Appointment> list = new ArrayList<>();
 
         String sql = """
-        SELECT * FROM appointments
-        WHERE doctor_id = ?
-        AND appointment_date = ?
-        AND is_deleted = false
-    """;
+                    SELECT * FROM appointments
+                    WHERE doctor_id = ?
+                    AND appointment_date = ?
+                    AND is_deleted = false
+                """;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, doctorId);
@@ -217,7 +230,6 @@ public class AppointmentDaoImpl implements AppointmentDao {
         }
         return list;
     }
-
 
 
     private Appointment mapAppointment(ResultSet rs) throws SQLException {

@@ -178,8 +178,10 @@ public class InputUtil {
             System.out.println("  mon-fri");
         }
     }
+
     public static String readWorkingHours(String prompt) {
         while (true) {
+
             String input = readLine(prompt).trim();
 
             if (input.isEmpty()) {

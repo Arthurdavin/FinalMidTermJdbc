@@ -21,20 +21,20 @@ public class DoctorDaoImpl implements DoctorDao {
 
         List<Doctor> list = new ArrayList<>();
 
-        String sql = """
-        SELECT * FROM doctors
-        WHERE is_deleted = false
-        ORDER BY doctor_id DESC
-        LIMIT ? OFFSET ?
-    """;
+        final String sql = """
+                    SELECT * FROM doctors
+                    WHERE is_deleted = false
+                    ORDER BY doctor_id DESC
+                    LIMIT ? OFFSET ?
+                """;
 
         int offset = (page - 1) * size;
         if (offset < 0) offset = 0;
 
         try (PreparedStatement ps = conn.prepareStatement(sql)) {
 
-            ps.setInt(1, size);
-            ps.setInt(2, offset);
+            ps.setInt(1, size);   // LIMIT ?
+            ps.setInt(2, offset); // OFFSET ?
 
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
@@ -143,17 +143,30 @@ public class DoctorDaoImpl implements DoctorDao {
         }
     }
 
+    //    @Override
+//    public void softDelete(Integer doctorId) {
+//        String sql = "UPDATE doctors SET is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE doctor_id = ?";
+//        try (Connection conn = DbConfig.getInstance();
+//             PreparedStatement ps = conn.prepareStatement(sql)) {
+//            ps.setInt(1, doctorId);
+//            ps.executeUpdate();
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//    }
     @Override
     public void softDelete(Integer doctorId) {
         String sql = "UPDATE doctors SET is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE doctor_id = ?";
-        try (Connection conn = DbConfig.getInstance();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        try {
+            PreparedStatement ps = conn.prepareStatement(sql);
             ps.setInt(1, doctorId);
             ps.executeUpdate();
+            ps.close(); // close the statement
         } catch (SQLException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // show error if anything goes wrong
         }
     }
+
 
     @Override
     public List<Doctor> searchByNameOrSpecialization(String keyword) {

@@ -9,7 +9,6 @@ import org.nocrala.tools.texttablefmt.BorderStyle;
 import org.nocrala.tools.texttablefmt.CellStyle;
 import org.nocrala.tools.texttablefmt.Table;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -17,10 +16,8 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class View {
-
 
     public static void print(String text, boolean isNewLine) {
         if (isNewLine)
@@ -146,6 +143,7 @@ public class View {
     }
 
     private final DoctorService doctorService = new DoctorService();
+
     private final AppointmentService appointmentService = new AppointmentService();
 
     public void run() {
@@ -201,7 +199,6 @@ public class View {
             printDoctorTable(doctors);
 
             System.out.println("""
-                    
                         [N] Next page
                         [P] Previous page
                         [B] Back to menu
@@ -226,6 +223,7 @@ public class View {
 //    Add Dr
 
     private void addDoctor() {
+        View.printHeader("Add Doctor");
         Doctor d = new Doctor();
         d.setFullName(InputUtil.readNonEmpty("Full name          : "));
         d.setSpecialization(InputUtil.readNonEmpty("Specialization     : "));
@@ -239,6 +237,7 @@ public class View {
     }
 
     private void updateDoctor() {
+        View.printHeader("Update Doctor");
         int id = InputUtil.readInt("Enter doctor ID to update: ");
 
         // Fetch current doctor
@@ -294,8 +293,8 @@ public class View {
         }
     }
 
-
     private void deleteDoctor() {
+        View.printHeader("Delete Doctor");
         int id = InputUtil.readInt("Enter doctor ID to delete: ");
         if (InputUtil.readConfirm("Confirm soft delete?")) {
             doctorService.delete(id);
@@ -304,6 +303,7 @@ public class View {
     }
 
     private void searchDoctors() {
+        View.printHeader("Search Doctor");
         String keyword = InputUtil.readLine("Search (name or specialization): ");
         List<Doctor> results = doctorService.search(keyword);
 
@@ -379,6 +379,7 @@ public class View {
     }
 
     private void createAppointment() {
+        View.printHeader("Create appointment");
         int doctorId = InputUtil.readInt("Doctor ID: ");
         Doctor doctor = doctorService.findById(doctorId).orElse(null);
 
@@ -457,8 +458,8 @@ public class View {
         System.out.println("✅ Appointment created successfully. ID = " + a.getAppointmentId());
     }
 
-
     private void updateAppointment() {
+        View.printHeader("Update appointment");
         int id = InputUtil.readInt("Enter appointment ID to update: ");
         Appointment a = appointmentService.findById(id).orElse(null);
 
@@ -586,7 +587,6 @@ public class View {
         }
     }
 
-
     private boolean isWithinWorkingHours(Doctor doctor, LocalTime time, int durationMinutes) {
         try {
             String hours = doctor.getWorkingHours(); // e.g., "08:00-16:00"
@@ -609,6 +609,7 @@ public class View {
     }
 
     private void deleteAppointment() {
+        View.printHeader("Delete appointment");
         int id = InputUtil.readInt("Enter appointment ID to delete: ");
         if (InputUtil.readConfirm("Confirm soft delete?")) {
             appointmentService.delete(id);
@@ -617,6 +618,7 @@ public class View {
     }
 
     private void searchAppointments() {
+        View.printHeader("Search Appointments");
         String phone = InputUtil.readLine("Patient phone (partial match): ");
         List<Appointment> results = appointmentService.searchByPhone(phone);
 
@@ -629,35 +631,35 @@ public class View {
         printAppointmentTable(results);
     }
 
-    private List<LocalTime> getAvailableTimeSlots(Doctor doctor, int durationMinutes, LocalDate date) {
-        List<LocalTime> slots = new ArrayList<>();
-
-        String[] workingHoursParts = doctor.getWorkingHours().split("-"); // e.g., "7:00-16:00"
-        if (workingHoursParts.length != 2) return slots;
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm"); // allow single-digit hour
-        LocalTime start;
-        LocalTime end;
-
-        try {
-            start = LocalTime.parse(workingHoursParts[0].trim(), formatter);
-            end = LocalTime.parse(workingHoursParts[1].trim(), formatter);
-        } catch (DateTimeParseException e) {
-            System.out.println("Doctor working hours format invalid: " + doctor.getWorkingHours());
-            return slots;
-        }
-
-        LocalTime slot = start;
-        while (slot.plusMinutes(durationMinutes).isBefore(end.plusSeconds(1))) {
-            // Only add if not already booked
-            if (!appointmentService.existsByDoctorAndTime(doctor.getDoctorId(), date, slot, durationMinutes)) {
-                slots.add(slot);
-            }
-            slot = slot.plusMinutes(30); // next possible slot
-        }
-
-        return slots;
-    }
+//    private List<LocalTime> getAvailableTimeSlots(Doctor doctor, int durationMinutes, LocalDate date) {
+//        List<LocalTime> slots = new ArrayList<>();
+//
+//        String[] workingHoursParts = doctor.getWorkingHours().split("-"); // e.g., "7:00-16:00"
+//        if (workingHoursParts.length != 2) return slots;
+//
+//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm"); // allow single-digit hour
+//        LocalTime start;
+//        LocalTime end;
+//
+//        try {
+//            start = LocalTime.parse(workingHoursParts[0].trim(), formatter);
+//            end = LocalTime.parse(workingHoursParts[1].trim(), formatter);
+//        } catch (DateTimeParseException e) {
+//            System.out.println("Doctor working hours format invalid: " + doctor.getWorkingHours());
+//            return slots;
+//        }
+//
+//        LocalTime slot = start;
+//        while (slot.plusMinutes(durationMinutes).isBefore(end.plusSeconds(1))) {
+//            // Only add if not already booked
+//            if (!appointmentService.existsByDoctorAndTime(doctor.getDoctorId(), date, slot, durationMinutes)) {
+//                slots.add(slot);
+//            }
+//            slot = slot.plusMinutes(30); // next possible slot
+//        }
+//
+//        return slots;
+//    }
 
 }
 
