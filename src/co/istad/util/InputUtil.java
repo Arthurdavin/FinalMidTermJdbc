@@ -25,7 +25,7 @@ public class InputUtil {
     public static String readLine(String prompt) {
         System.out.print(prompt);
         return scanner.nextLine().trim();
-    }
+    } //.trim() This removes extra spaces at the beginning and end.
 
     public static String readNonEmpty(String prompt) {
         while (true) {
@@ -43,18 +43,6 @@ public class InputUtil {
                 return LocalDate.parse(s, fmt);
             } catch (DateTimeParseException e) {
                 System.out.println("Invalid date format.");
-            }
-        }
-    }
-
-    public static LocalTime readTime(String prompt) {
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("HH:mm");
-        while (true) {
-            String s = readLine(prompt + " (HH:mm): ");
-            try {
-                return LocalTime.parse(s, fmt);
-            } catch (DateTimeParseException e) {
-                System.out.println("Invalid time format.");
             }
         }
     }
@@ -83,23 +71,11 @@ public class InputUtil {
         }
     }
 
-    public static String readName(String message) {
-        while (true) {
-            System.out.print(message);
-            String input = scanner.nextLine().trim();
+    public static boolean isValidEmail(String email) {
+        if (email == null || email.isBlank()) return false;
 
-            if (input.isEmpty()) {
-                System.out.println("Name cannot be empty.");
-                continue;
-            }
-
-            if (!input.matches("[a-zA-Z ]+")) {
-                System.out.println("Name must contain letters only (no numbers or symbols).");
-                continue;
-            }
-
-            return input;
-        }
+        String regex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        return email.matches(regex);
     }
 
     public static String readWorkingDays(String prompt) {
@@ -211,16 +187,5 @@ public class InputUtil {
             }
         }
     }
-
-//    public static String readNonEmpty(String prompt) {
-//        while (true) {
-//            String input = readLine(prompt);
-//            if (!input.trim().isEmpty()) {
-//                return input.trim();
-//            }
-//            System.out.println("This field cannot be empty.");
-//        }
-//    }
-
 
 }

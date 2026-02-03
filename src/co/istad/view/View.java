@@ -37,7 +37,7 @@ public class View {
         CellStyle cellStyle = new CellStyle(CellStyle.HorizontalAlign.center);
         Table table = new Table(1, BorderStyle.UNICODE_DOUBLE_BOX);
         table.setColumnWidth(0, 30, 60);
-        table.addCell("Clinic Management System", cellStyle);
+        table.addCell("Hospital Appointment System", cellStyle);
         table.addCell("1. Doctors", cellStyle);
         table.addCell("2. Appointments", cellStyle);
         table.addCell("0. Exit", cellStyle);
@@ -182,6 +182,8 @@ public class View {
         }
     }
 
+    // List Doctor
+
     private void listDoctors() {
         int page = 1;
         final int size = 5;
@@ -220,78 +222,99 @@ public class View {
         }
     }
 
-//    Add Dr
+    // Insert Doctor
 
     private void addDoctor() {
         View.printHeader("Add Doctor");
+
         Doctor d = new Doctor();
+
         d.setFullName(InputUtil.readNonEmpty("Full name          : "));
         d.setSpecialization(InputUtil.readNonEmpty("Specialization     : "));
         d.setPhone(InputUtil.readNonEmpty("Phone              : "));
-        d.setEmail(InputUtil.readEmail("Email              : "));
+
+        // --- EMAIL CHECK BEFORE INSERT ---
+        String email = InputUtil.readEmail("Email              : ");
+        Doctor existing = doctorService.findByEmail(email);
+
+        if (existing != null) {
+            System.out.println("❌ Email already exists. Doctor not created.");
+            return;
+        }
+
+        d.setEmail(email);
         d.setRoomNumber(InputUtil.readNonEmpty("Room number        : "));
         d.setWorkingDays(InputUtil.readWorkingDays("Working days (mon | mon,wed,fri | mon-fri): "));
         d.setWorkingHours(InputUtil.readWorkingHours("Working hours (HH:mm-HH:mm): "));
+
         doctorService.create(d);
         System.out.println("✅ Doctor created successfully...!");
     }
 
+    // update Doctor
+
     private void updateDoctor() {
         View.printHeader("Update Doctor");
+
         int id = InputUtil.readInt("Enter doctor ID to update: ");
 
-        // Fetch current doctor
         Doctor existingDoctor = doctorService.findById(id).orElse(null);
         if (existingDoctor == null) {
-            System.out.println("Doctor ID not found.");
+            System.out.println("❌ Doctor ID not found.");
             return;
         }
 
         System.out.println("Leave blank to keep current value");
 
-        // Full Name
         String name = InputUtil.readLine("New full name: ");
         if (!name.isEmpty()) existingDoctor.setFullName(name);
 
-        // Specialization
         String spec = InputUtil.readLine("New specialization: ");
         if (!spec.isEmpty()) existingDoctor.setSpecialization(spec);
 
-        // Phone
         String phone = InputUtil.readLine("New phone: ");
         if (!phone.isEmpty()) existingDoctor.setPhone(phone);
 
-        // Email with uniqueness check
-        String email = InputUtil.readEmail("New email: ");
+        // ====== SAFE EMAIL UPDATE ======
+        String email = InputUtil.readLine("New email (leave blank to keep): ").trim();
+
         if (!email.isEmpty()) {
-            Doctor doctorByEmail = doctorService.findByEmail(email);
-            if (doctorByEmail != null && !doctorByEmail.getDoctorId().equals(id)) {
-                System.out.println("Email already exists. Update aborted.");
+
+            if (!InputUtil.isValidEmail(email)) {
+                System.out.println("❌ Invalid email format.");
                 return;
             }
+
+            Doctor doctorByEmail = doctorService.findByEmail(email);
+
+            if (doctorByEmail != null &&
+                    !doctorByEmail.getDoctorId().equals(id)) {
+                System.out.println("❌ Email already exists. Update cancelled.");
+                return;
+            }
+
             existingDoctor.setEmail(email);
         }
 
-        // Room Number
         String room = InputUtil.readLine("New room: ");
         if (!room.isEmpty()) existingDoctor.setRoomNumber(room);
 
-        // Working Days
         String days = InputUtil.readLine("New working days: ");
         if (!days.isEmpty()) existingDoctor.setWorkingDays(days);
 
-        // Working Hours
         String hours = InputUtil.readLine("New working hours: ");
         if (!hours.isEmpty()) existingDoctor.setWorkingHours(hours);
 
         boolean updated = doctorService.update(existingDoctor);
 
         if (updated) {
-            System.out.println("Doctor updated successfully.");
+            System.out.println("✅ Doctor updated successfully.");
         } else {
-            System.out.println("Update failed.");
+            System.out.println("⚠️ Update failed.");
         }
     }
+
+    // soft Delete Doctor
 
     private void deleteDoctor() {
         View.printHeader("Delete Doctor");
@@ -301,6 +324,8 @@ public class View {
             System.out.println("Doctor soft deleted.");
         }
     }
+
+    // Search Doctor
 
     private void searchDoctors() {
         View.printHeader("Search Doctor");
@@ -338,6 +363,8 @@ public class View {
             }
         }
     }
+
+    // List APPOINTMENT by pagination
 
     private void listAppointments() {
         int page = 1;
@@ -378,74 +405,76 @@ public class View {
         }
     }
 
+    // CREATE APPOINTMENT
+
     private void createAppointment() {
         View.printHeader("Create appointment");
+
         int doctorId = InputUtil.readInt("Doctor ID: ");
         Doctor doctor = doctorService.findById(doctorId).orElse(null);
 
         if (doctor == null) {
-            System.out.println("Doctor not found.");
+            System.out.println("❌ Doctor not found.");
             return;
         }
 
-        // Show doctor schedule
         System.out.println("Doctor Working Days : " + doctor.getWorkingDays());
         System.out.println("Doctor Working Hours: " + doctor.getWorkingHours());
 
-        // Appointment duration
+        // -------- DURATION (safe) --------
         int duration;
         while (true) {
             duration = InputUtil.readInt("Appointment duration (30 or 60 minutes): ");
+
             if (duration == 30 || duration == 60) break;
-            System.out.println("Invalid duration. Must be 30 or 60 minutes.");
+
+            System.out.println("⚠️ Invalid duration. Must be 30 or 60 minutes.");
         }
 
         LocalDate date;
         LocalTime time;
 
         while (true) {
-            // Date input
+
+            // ---- DATE (safe) ----
             date = InputUtil.readDate("Appointment date (yyyy-MM-dd): ");
 
-            // Check working day
             if (!isWorkingDay(doctor, date)) {
-                System.out.println("Doctor does not work on this day. Available: " + doctor.getWorkingDays());
+                System.out.println("❌ Doctor does not work on this day. Available: " + doctor.getWorkingDays());
                 continue;
             }
 
-            // Time input
+            // ---- TIME (safe) ----
             String timeInput = InputUtil.readLine("Appointment time (HH:mm): ");
+
             try {
                 time = LocalTime.parse(timeInput, DateTimeFormatter.ofPattern("HH:mm"));
             } catch (Exception e) {
-                System.out.println("Invalid time format. Example: 09:30");
+                System.out.println("⚠️ Invalid time format. Example: 09:30");
                 continue;
             }
 
-            // Check working hours
             if (!isWithinWorkingHours(doctor, time, duration)) {
-                System.out.println("Outside working hours: " + doctor.getWorkingHours());
+                System.out.println("❌ Outside working hours: " + doctor.getWorkingHours());
                 continue;
             }
 
-            // Check future appointment
-            LocalDate today = LocalDate.now();
-            LocalTime now = LocalTime.now();
-            if (date.isBefore(today) || (date.equals(today) && time.isBefore(now))) {
-                System.out.println("Appointment must be in the future.");
+            // ---- FUTURE CHECK ----
+            if (date.isBefore(LocalDate.now()) ||
+                    (date.equals(LocalDate.now()) && time.isBefore(LocalTime.now()))) {
+                System.out.println("❌ Appointment must be in the future.");
                 continue;
             }
 
-            // Double booking check
+            // ---- DOUBLE BOOKING ----
             if (appointmentService.existsByDoctorAndTime(doctorId, date, time, duration)) {
-                System.out.println("Doctor already has an appointment at this time.");
+                System.out.println("❌ Doctor already has an appointment at this time.");
                 continue;
             }
 
-            break; // All validations passed
+            break; // ✅ all validations passed
         }
 
-        // Create appointment
         Appointment a = new Appointment();
         a.setDoctorId(doctorId);
         a.setPatientName(InputUtil.readNonEmpty("Patient name: "));
@@ -453,18 +482,22 @@ public class View {
         a.setPatientPhone(InputUtil.readNonEmpty("Patient phone: "));
         a.setAppointmentDate(date);
         a.setAppointmentTime(time);
+        a.setDurationMinutes(duration);   // ✅ IMPORTANT
 
         appointmentService.create(a);
         System.out.println("✅ Appointment created successfully. ID = " + a.getAppointmentId());
     }
 
+    // Update APPOINTMENT
+
     private void updateAppointment() {
         View.printHeader("Update appointment");
+
         int id = InputUtil.readInt("Enter appointment ID to update: ");
         Appointment a = appointmentService.findById(id).orElse(null);
 
         if (a == null) {
-            System.out.println("Appointment not found.");
+            System.out.println("❌ Appointment not found.");
             return;
         }
 
@@ -474,26 +507,32 @@ public class View {
         System.out.println("Current Time     : " + a.getAppointmentTime());
         System.out.println("Current Duration : " + a.getDurationMinutes() + " mins");
 
-        // Doctor input
+        // ---- Doctor (safe) ----
         String doctorInput = InputUtil.readLine("New Doctor ID: ");
-        int doctorId = doctorInput.isEmpty() ? a.getDoctorId() : Integer.parseInt(doctorInput);
+        int doctorId = doctorInput.isEmpty()
+                ? a.getDoctorId()
+                : Integer.parseInt(doctorInput);
 
         Doctor doctor = doctorService.findById(doctorId).orElse(null);
         if (doctor == null) {
-            System.out.println("Doctor not found.");
+            System.out.println("❌ Doctor not found.");
             return;
         }
 
-        // Show doctor schedule
         System.out.println("Doctor Working Days : " + doctor.getWorkingDays());
         System.out.println("Doctor Working Hours: " + doctor.getWorkingHours());
 
-        // Duration input
+        // ---- Duration (safe) ----
         String durationInput = InputUtil.readLine("New duration (30 or 60): ");
-        int duration = durationInput.isEmpty() ? a.getDurationMinutes() : Integer.parseInt(durationInput);
-        if (duration != 30 && duration != 60) duration = a.getDurationMinutes();
+        int duration = durationInput.isEmpty()
+                ? a.getDurationMinutes()
+                : Integer.parseInt(durationInput);
 
-        // Patient info
+        if (duration != 30 && duration != 60) {
+            duration = a.getDurationMinutes(); // fallback
+        }
+
+        // ---- Patient info (safe) ----
         String name = InputUtil.readLine("New patient name (leave blank to keep): ");
         if (!name.isEmpty()) a.setPatientName(name);
 
@@ -507,55 +546,55 @@ public class View {
         LocalTime time;
 
         while (true) {
-            // Date input
-            String dateInput = InputUtil.readLine("New DATE (yyyy-MM-dd, leave blank to keep): ");
-            date = dateInput.isEmpty() ? a.getAppointmentDate() : LocalDate.parse(dateInput);
 
-            // Time input
+            String dateInput = InputUtil.readLine("New DATE (yyyy-MM-dd, leave blank to keep): ");
+            date = dateInput.isEmpty()
+                    ? a.getAppointmentDate()
+                    : LocalDate.parse(dateInput);
+
             String timeInput = InputUtil.readLine("New TIME (HH:mm, leave blank to keep): ");
+
             if (timeInput.isEmpty()) {
                 time = a.getAppointmentTime();
             } else {
                 try {
                     time = LocalTime.parse(timeInput, DateTimeFormatter.ofPattern("HH:mm"));
                 } catch (Exception e) {
-                    System.out.println("Invalid time format. Example: 08:30");
+                    System.out.println("⚠️ Invalid time format. Example: 08:30");
                     continue;
                 }
             }
 
-            // Validate working day
             if (!isWorkingDay(doctor, date)) {
-                System.out.println("Doctor does not work on this day. Available: " + doctor.getWorkingDays());
+                System.out.println("❌ Doctor does not work on this day.");
                 continue;
             }
 
-            // Validate working hours
             if (!isWithinWorkingHours(doctor, time, duration)) {
-                System.out.println("Outside working hours: " + doctor.getWorkingHours());
+                System.out.println("❌ Outside working hours.");
                 continue;
             }
 
-            // Future appointment check
             if (date.isBefore(LocalDate.now()) ||
                     (date.equals(LocalDate.now()) && time.isBefore(LocalTime.now()))) {
-                System.out.println("Appointment must be in the future.");
+                System.out.println("❌ Appointment must be in the future.");
                 continue;
             }
 
-            // Double booking check (ignore current appointment)
-            if ((doctorId != a.getDoctorId() ||
-                    !date.equals(a.getAppointmentDate()) ||
-                    !time.equals(a.getAppointmentTime())) &&
+            boolean changed =
+                    doctorId != a.getDoctorId() ||
+                            !date.equals(a.getAppointmentDate()) ||
+                            !time.equals(a.getAppointmentTime());
+
+            if (changed &&
                     appointmentService.existsByDoctorAndTime(doctorId, date, time, duration)) {
-                System.out.println("Doctor already booked at this time.");
+                System.out.println("❌ Doctor already booked at this time.");
                 continue;
             }
 
-            break; // All validations passed
+            break;
         }
 
-        // Apply updates
         a.setDoctorId(doctorId);
         a.setAppointmentDate(date);
         a.setAppointmentTime(time);
@@ -567,33 +606,39 @@ public class View {
 
     // ──────────────── Helper Methods ────────────────
 
-    //    date Dr work
     private boolean isWorkingDay(Doctor doctor, LocalDate date) {
-        String workDays = doctor.getWorkingDays().toLowerCase(); // e.g., "mon-fri"
-        String day = date.getDayOfWeek().toString().substring(0, 3).toLowerCase(); // "mon", "tue", etc.
+        if (doctor.getWorkingDays() == null) return false;
+
+        String workDays = doctor.getWorkingDays().toLowerCase().trim();
+        String day = date.getDayOfWeek().toString().substring(0, 3).toLowerCase();
+
+        List<String> allDays =
+                List.of("mon", "tue", "wed", "thu", "fri", "sat", "sun");
 
         if (workDays.contains("-")) {
-            // Handle range like "mon-fri"
             String[] parts = workDays.split("-");
-            List<String> allDays = List.of("mon", "tue", "wed", "thu", "fri", "sat", "sun");
-            int start = allDays.indexOf(parts[0]);
-            int end = allDays.indexOf(parts[1]);
-            List<String> rangeDays = allDays.subList(start, end + 1);
-            return rangeDays.contains(day);
-        } else {
-            // Comma-separated days
-            String[] daysArray = workDays.split(",");
-            return Arrays.asList(daysArray).contains(day);
+            if (parts.length != 2) return false;
+
+            int start = allDays.indexOf(parts[0].trim());
+            int end = allDays.indexOf(parts[1].trim());
+
+            if (start == -1 || end == -1) return false;
+
+            return allDays.subList(start, end + 1).contains(day);
         }
+
+        return Arrays.asList(workDays.split(",")).contains(day);
     }
 
     private boolean isWithinWorkingHours(Doctor doctor, LocalTime time, int durationMinutes) {
-        try {
-            String hours = doctor.getWorkingHours(); // e.g., "08:00-16:00"
-            if (!hours.contains("-")) return false;
 
+        String hours = doctor.getWorkingHours();
+        if (hours == null || !hours.contains("-")) return false;
+
+        try {
             String[] parts = hours.split("-");
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm"); // allow 7:00 or 08:00
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm");
 
             LocalTime start = LocalTime.parse(parts[0].trim(), formatter);
             LocalTime end = LocalTime.parse(parts[1].trim(), formatter);
@@ -602,11 +647,13 @@ public class View {
 
             return !time.isBefore(start) && !appointmentEnd.isAfter(end);
 
-        } catch (DateTimeParseException e) {
-            System.out.println("Invalid working hours format for doctor: " + doctor.getWorkingHours());
+        } catch (Exception e) {
+            System.out.println("⚠️ Invalid working hours format: " + hours);
             return false;
         }
     }
+
+    // Soft Delete APPOINTMENT
 
     private void deleteAppointment() {
         View.printHeader("Delete appointment");
@@ -616,6 +663,8 @@ public class View {
             System.out.println("Appointment soft deleted.");
         }
     }
+
+    // Search APPOINTMENT
 
     private void searchAppointments() {
         View.printHeader("Search Appointments");
@@ -631,35 +680,4 @@ public class View {
         printAppointmentTable(results);
     }
 
-//    private List<LocalTime> getAvailableTimeSlots(Doctor doctor, int durationMinutes, LocalDate date) {
-//        List<LocalTime> slots = new ArrayList<>();
-//
-//        String[] workingHoursParts = doctor.getWorkingHours().split("-"); // e.g., "7:00-16:00"
-//        if (workingHoursParts.length != 2) return slots;
-//
-//        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("H:mm"); // allow single-digit hour
-//        LocalTime start;
-//        LocalTime end;
-//
-//        try {
-//            start = LocalTime.parse(workingHoursParts[0].trim(), formatter);
-//            end = LocalTime.parse(workingHoursParts[1].trim(), formatter);
-//        } catch (DateTimeParseException e) {
-//            System.out.println("Doctor working hours format invalid: " + doctor.getWorkingHours());
-//            return slots;
-//        }
-//
-//        LocalTime slot = start;
-//        while (slot.plusMinutes(durationMinutes).isBefore(end.plusSeconds(1))) {
-//            // Only add if not already booked
-//            if (!appointmentService.existsByDoctorAndTime(doctor.getDoctorId(), date, slot, durationMinutes)) {
-//                slots.add(slot);
-//            }
-//            slot = slot.plusMinutes(30); // next possible slot
-//        }
-//
-//        return slots;
-//    }
-
 }
-

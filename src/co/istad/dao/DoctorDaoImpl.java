@@ -76,17 +76,17 @@ public class DoctorDaoImpl implements DoctorDao {
     public int update(int id, Doctor doctor) {
 
         final String SQL = """
-                    UPDATE doctors SET
-                        full_name = COALESCE(?, full_name),
-                        specialization = COALESCE(?, specialization),
-                        phone = COALESCE(?, phone),
-                        email = COALESCE(?, email),
-                        room_number = COALESCE(?, room_number),
-                        working_days = COALESCE(?, working_days),
-                        working_hours = COALESCE(?, working_hours),
-                        updated_at = CURRENT_TIMESTAMP
-                    WHERE doctor_id = ? AND is_deleted = FALSE
-                """;
+            UPDATE doctors SET
+                full_name = COALESCE(NULLIF(?, ''), full_name),
+                specialization = COALESCE(NULLIF(?, ''), specialization),
+                phone = COALESCE(NULLIF(?, ''), phone),
+                email = COALESCE(NULLIF(?, ''), email),
+                room_number = COALESCE(NULLIF(?, ''), room_number),
+                working_days = COALESCE(NULLIF(?, ''), working_days),
+                working_hours = COALESCE(NULLIF(?, ''), working_hours),
+                updated_at = CURRENT_TIMESTAMP
+            WHERE doctor_id = ? AND is_deleted = FALSE
+            """;
 
         try (PreparedStatement stmt = conn.prepareStatement(SQL)) {
 
@@ -99,11 +99,13 @@ public class DoctorDaoImpl implements DoctorDao {
             stmt.setString(7, doctor.getWorkingHours());
             stmt.setInt(8, id);
 
-            return stmt.executeUpdate(); // returns affected rows
+            return stmt.executeUpdate();
 
         } catch (SQLException e) {
-            System.out.println("Update failed: " + e.getMessage());
-            throw new RuntimeException(e);
+
+            // ✅ IMPORTANT: do NOT crash the app
+            System.out.println("⚠️ Update failed: " + e.getMessage());
+            return 0;   // means "update failed"
         }
     }
 
@@ -143,17 +145,6 @@ public class DoctorDaoImpl implements DoctorDao {
         }
     }
 
-    //    @Override
-//    public void softDelete(Integer doctorId) {
-//        String sql = "UPDATE doctors SET is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE doctor_id = ?";
-//        try (Connection conn = DbConfig.getInstance();
-//             PreparedStatement ps = conn.prepareStatement(sql)) {
-//            ps.setInt(1, doctorId);
-//            ps.executeUpdate();
-//        } catch (SQLException e) {
-//            e.printStackTrace();
-//        }
-//    }
     @Override
     public void softDelete(Integer doctorId) {
         String sql = "UPDATE doctors SET is_deleted = true, updated_at = CURRENT_TIMESTAMP WHERE doctor_id = ?";
@@ -166,7 +157,6 @@ public class DoctorDaoImpl implements DoctorDao {
             e.printStackTrace(); // show error if anything goes wrong
         }
     }
-
 
     @Override
     public List<Doctor> searchByNameOrSpecialization(String keyword) {

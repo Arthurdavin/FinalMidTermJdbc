@@ -10,35 +10,41 @@ import java.util.Optional;
 public class DoctorService {
 
     private final DoctorDao dao = new DoctorDaoImpl();
-
     // ────────────────────────────────────────────────
     // CREATE
     // ────────────────────────────────────────────────
+
     public void create(Doctor doctor) {
-        dao.insert(doctor);
+        int rows = dao.insert(doctor);
+        if (rows == 0) {
+            System.out.println("⚠️ Doctor NOT created (possibly duplicate email).");
+        }
     }
 
     // ────────────────────────────────────────────────
-    // UPDATE
+    // Update
     // ────────────────────────────────────────────────
+
     public boolean update(Doctor doctor) {
 
-        if (doctor.getDoctorId() == null) {
-            return false;
-        }
+        if (doctor.getDoctorId() == null) return false;
 
-        if (dao.findById(doctor.getDoctorId()).isEmpty()) {
-            return false;
-        }
+        if (dao.findById(doctor.getDoctorId()).isEmpty()) return false;
 
         int rows = dao.update(doctor.getDoctorId(), doctor);
-        return rows > 0;
 
+        if (rows == 0) {
+            System.out.println("⚠️ Update failed (possibly duplicate email).");
+            return false;
+        }
+
+        return true;
     }
 
     // ────────────────────────────────────────────────
     // DELETE
     // ────────────────────────────────────────────────
+
     public void delete(Integer doctorId) {
         dao.softDelete(doctorId);
     }
@@ -46,6 +52,7 @@ public class DoctorService {
     // ────────────────────────────────────────────────
     // READ
     // ────────────────────────────────────────────────
+
     public List<Doctor> listPaginated(int page, int size) {
         return dao.findAllPaginated(page, size);
     }
@@ -57,6 +64,7 @@ public class DoctorService {
     // ────────────────────────────────────────────────
     // SEARCH
     // ────────────────────────────────────────────────
+
     public List<Doctor> search(String keyword) {
         return dao.searchByNameOrSpecialization(keyword);
     }
@@ -64,6 +72,7 @@ public class DoctorService {
     // ────────────────────────────────────────────────
     // FIND BY EMAIL (NEW)
     // ────────────────────────────────────────────────
+
     public Doctor findByEmail(String email) {
         return dao.findByEmail(email); // Make sure this method exists in your DAO
     }
