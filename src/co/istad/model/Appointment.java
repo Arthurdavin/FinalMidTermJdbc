@@ -90,6 +90,7 @@ public class Appointment {
     public void setDeleted(boolean deleted) { isDeleted = deleted; }
 
     // ────────────── NEW Getter & Setter ──────────────
+
     public int getDurationMinutes() { return durationMinutes; }
     public void setDurationMinutes(int durationMinutes) { this.durationMinutes = durationMinutes; }
 
